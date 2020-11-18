@@ -6,7 +6,7 @@
 #include "appsapi.h"
 #include "buttonhandler.h"
 
-const event_device touchScreen("/dev/input/event1", O_WRONLY);
+const event_device touchScreen("/dev/input/event2", O_WRONLY);
 
 void Application::launch(){
     if(m_process->processId()){
