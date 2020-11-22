@@ -9,7 +9,7 @@
 #define DISPLAYHEIGHT 1872.0
 #define WACOM_X_SCALAR (float(DISPLAYWIDTH) / float(DISPLAYHEIGHT))
 #define WACOM_Y_SCALAR (float(DISPLAYHEIGHT) / float(DISPLAYWIDTH))
-//#define DEBUG_EVENTS
+#define DEBUG_EVENTS
 
 EventFilter::EventFilter(QObject *parent) : QObject(parent), root(nullptr){}
 
@@ -97,9 +97,54 @@ void postEvent(QEvent::Type type, QEvent* ev, QQuickItem* root){
             localPos.setX(pos.x() - widgetPos.x());
             localPos.setY((pos.y()) - widgetPos.y());
             event->setLocalPos(localPos);
+            qDebug() << "---------------";
+            qDebug() << "postEvent STYLUS: " << event;
+            qDebug() << "---------------";
             QGuiApplication::postEvent(postWidget, event);
+            qDebug() << "postEvent STYLUS  end ---------------";
         }
     }
+    delete mouseEvent;
+}
+
+QPointF fixTouch(QPointF pt) {
+  return QPointF(DISPLAYWIDTH - pt.x(), pt.y());
+}
+
+void postTouchEvent(QEvent::Type type, QMouseEvent* ev, QQuickItem* root){
+    qDebug() << "postTouchEvent";
+    auto mouseEvent = new QMouseEvent(
+        ev->type(),
+        fixTouch(ev->localPos()),
+        fixTouch(ev->screenPos()),
+        ev->button(),
+        ev->buttons(),
+        ev->modifiers());
+    qDebug() << "fixed mouseEvent" << mouseEvent;
+    auto pos = mouseEvent->globalPos();
+    for(auto postWidget : widgetsAt(root, pos)){
+        if(parentCount((QQuickItem*)postWidget)){
+#ifdef DEBUG_EVENTS
+            qDebug() << "postTouchWidget: " << postWidget;
+#endif
+            auto event = new QMouseEvent(
+                mouseEvent->type(), mouseEvent->localPos(), mouseEvent->windowPos(),
+                mouseEvent->screenPos(), mouseEvent->button(), mouseEvent->buttons(),
+                mouseEvent->modifiers()
+            );
+            auto widgetPos = globalPos((QQuickItem*)postWidget);
+            auto localPos = event->localPos();
+            localPos.setX(pos.x() - widgetPos.x());
+            localPos.setY((pos.y()) - widgetPos.y());
+            event->setLocalPos(localPos);
+            qDebug() << "---------------";
+            qDebug() << "postEvent TOUCH: " << event;
+            qDebug() << "---------------";
+            QGuiApplication::postEvent(postWidget, event);
+            qDebug() << "postEvent TOUCH end -----------------";
+        }
+    }
+    delete mouseEvent;
 }
 
 bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
@@ -128,13 +173,23 @@ bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
             || type == QEvent::MouseButtonPress
             || type == QEvent::MouseButtonRelease
         ){
+          auto mouseEvent = (QMouseEvent*)ev;
+          if (Qt::MouseEventSynthesizedByQt == mouseEvent->source()) {
+            qDebug() << "SYNTH event";
+            postTouchEvent(mouseEvent->type(), mouseEvent, root);
+            return true;
+          }
+          else {
+            qDebug() << "*** NOT SYNTH **** event";
+
             for(auto widget : widgetsAt(root, ((QMouseEvent*)ev)->globalPos())){
                 if(parentCount((QQuickItem*)widget)){
-                    qDebug() << "postWidget: " << widget;
+                    qDebug() << "postMouseWidget: " << widget;
                 }
             }
             qDebug() << obj;
             qDebug() << ev;
+          }
         }
 #endif
     }
