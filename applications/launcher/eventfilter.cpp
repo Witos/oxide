@@ -119,10 +119,8 @@ void postEvent(QMouseEvent* mouseEvent, QQuickItem* root){
             QGuiApplication::postEvent(postWidget, event);
         }
     }
+    delete mouseEvent;
 }
-
-
-
 
 bool isTabletEvent(QEvent::Type type) {
   return type == QEvent::TabletPress ||
@@ -190,8 +188,8 @@ bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
             }
             qDebug() << obj;
             qDebug() << ev;
+          }
         }
 #endif
-    }
     return filtered;
 }
