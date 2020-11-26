@@ -1,4 +1,5 @@
 #include "eventfilter.h"
+#include "settings.h"
 #include <QTimer>
 #include <QDebug>
 #include <QMouseEvent>
@@ -26,7 +27,7 @@ QPointF transpose(QPointF pointF){
     return pointF;
 }
 QPointF fixTouch(QPointF pt) {
-  return QPointF(DISPLAYWIDTH - pt.x(), pt.y());
+    return QPointF(DISPLAYWIDTH - pt.x(), pt.y());
 }
 QPointF globalPos(QQuickItem* obj){
     qreal x = obj->x();
@@ -43,28 +44,28 @@ QMouseEvent* tabletToMouseEvent(QEvent::Type type, QEvent* ev){
     auto tabletEvent = (QTabletEvent*)ev;
     auto button = tabletEvent->pressure() > 0 || type == QMouseEvent::MouseButtonRelease ? Qt::LeftButton : Qt::NoButton;
     return new QMouseEvent(
-        type,
-        transpose(tabletEvent->posF()),
-        transpose(tabletEvent->globalPosF()),
-        transpose(tabletEvent->globalPosF()),
-        button,
-        button,
-        tabletEvent->modifiers()
-    );
+                type,
+                transpose(tabletEvent->posF()),
+                transpose(tabletEvent->globalPosF()),
+                transpose(tabletEvent->globalPosF()),
+                button,
+                button,
+                tabletEvent->modifiers()
+                );
 }
 
 QMouseEvent* touchToMouseEvent(QEvent::Type type, QEvent* ev){
     auto touchEvent = (QTouchEvent*)ev;
     auto button = Qt::LeftButton;
     return new QMouseEvent(
-        type,
-        fixTouch(touchEvent->touchPoints()[0].pos()),
-        fixTouch(touchEvent->touchPoints()[0].screenPos()),
-        fixTouch(touchEvent->touchPoints()[0].screenPos()),
-        button,
-        button,
-        touchEvent->modifiers()
-    );
+                type,
+                fixTouch(touchEvent->touchPoints()[0].pos()),
+            fixTouch(touchEvent->touchPoints()[0].screenPos()),
+            fixTouch(touchEvent->touchPoints()[0].screenPos()),
+            button,
+            button,
+            touchEvent->modifiers()
+            );
 }
 bool isAt(QQuickItem* item, QPointF pos){
     auto itemPos = globalPos(item);
@@ -106,10 +107,10 @@ void postEvent(QMouseEvent* mouseEvent, QQuickItem* root){
             qDebug() << "postWidget: " << postWidget;
 #endif
             auto event = new QMouseEvent(
-                mouseEvent->type(), mouseEvent->localPos(), mouseEvent->windowPos(),
-                mouseEvent->screenPos(), mouseEvent->button(), mouseEvent->buttons(),
-                mouseEvent->modifiers()
-            );
+                        mouseEvent->type(), mouseEvent->localPos(), mouseEvent->windowPos(),
+                        mouseEvent->screenPos(), mouseEvent->button(), mouseEvent->buttons(),
+                        mouseEvent->modifiers()
+                        );
             auto widgetPos = globalPos((QQuickItem*)postWidget);
             auto localPos = event->localPos();
             localPos.setX(pos.x() - widgetPos.x());
@@ -119,47 +120,46 @@ void postEvent(QMouseEvent* mouseEvent, QQuickItem* root){
             QGuiApplication::postEvent(postWidget, event);
         }
     }
-    delete mouseEvent;
 }
 
 bool isTabletEvent(QEvent::Type type) {
-  return type == QEvent::TabletPress ||
-    type == QEvent::TabletRelease ||
-    type == QEvent::TabletMove;
+    return type == QEvent::TabletPress ||
+            type == QEvent::TabletRelease ||
+            type == QEvent::TabletMove;
 }
 
 bool isTouchEvent(QEvent::Type type) {
-  return type == QEvent::TouchBegin ||
-    type == QEvent::TouchUpdate ||
-    type == QEvent::TouchEnd;
+    return type == QEvent::TouchBegin ||
+            type == QEvent::TouchUpdate ||
+            type == QEvent::TouchEnd;
 }
 
 QEvent::Type tabletEventTypeToMouseEventType(QEvent::Type type) {
-  switch(type) {
+    switch(type) {
     case QEvent::TabletPress:
-      return QEvent::MouseButtonPress;
+        return QEvent::MouseButtonPress;
     case QEvent::TabletRelease:
-      return QEvent::MouseButtonRelease;
+        return QEvent::MouseButtonRelease;
     case QEvent::TabletMove:
-      return QEvent::MouseMove;
+        return QEvent::MouseMove;
     default:
-      return type;
-  }
-  return type;
+        return type;
+    }
+    return type;
 }
 
 QEvent::Type touchEventTypeToMouseEventType(QEvent::Type type) {
-  switch(type) {
+    switch(type) {
     case QEvent::TouchBegin:
-      return QEvent::MouseButtonPress;
+        return QEvent::MouseButtonPress;
     case QEvent::TouchEnd:
-      return QEvent::MouseButtonRelease;
+        return QEvent::MouseButtonRelease;
     case QEvent::TouchUpdate:
-      return QEvent::MouseMove;
+        return QEvent::MouseMove;
     default:
-      return type;
-  }
-  return type;
+        return type;
+    }
+    return type;
 }
 
 bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
@@ -167,20 +167,20 @@ bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
     bool filtered = QObject::eventFilter(obj, ev);
     if(!filtered){
         if (isTabletEvent(type) || isTouchEvent(type)) {
-          QMouseEvent* mouseEvent = nullptr;
-          if (isTabletEvent(type)) {
-              mouseEvent = tabletToMouseEvent(tabletEventTypeToMouseEventType(type), ev);
-          }
-          else if (isTouchEvent(type)) {
-              mouseEvent = touchToMouseEvent(touchEventTypeToMouseEventType(type), ev);
-          }
-          postEvent(mouseEvent, root);
-          delete mouseEvent;
+            QMouseEvent* mouseEvent = nullptr;
+            if (isTabletEvent(type)) {
+                mouseEvent = tabletToMouseEvent(tabletEventTypeToMouseEventType(type), ev);
+            }
+            else if (Settings::instance().getDeviceType() == DeviceType::RM2 && isTouchEvent(type)) {
+                mouseEvent = touchToMouseEvent(touchEventTypeToMouseEventType(type), ev);
+            }
+            postEvent(mouseEvent, root);
+            delete mouseEvent;
         }
 #ifdef DEBUG_EVENTS
         else if (type == QEvent::MouseMove
-              || type == QEvent::MouseButtonPress
-              || type == QEvent::MouseButtonRelease) {
+                 || type == QEvent::MouseButtonPress
+                 || type == QEvent::MouseButtonRelease) {
             for(auto widget : widgetsAt(root, ((QMouseEvent*)ev)->globalPos())){
                 if(parentCount((QQuickItem*)widget)){
                     qDebug() << "postMouseWidget: " << widget;
@@ -188,8 +188,8 @@ bool EventFilter::eventFilter(QObject* obj, QEvent* ev){
             }
             qDebug() << obj;
             qDebug() << ev;
-          }
         }
+    }
 #endif
     return filtered;
 }
