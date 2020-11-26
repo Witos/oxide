@@ -25,7 +25,6 @@ bool doesStartWithPrefixes(const char* const prefixes[], char* toCheck) {
     int length = strlen(toCheck);
     for (int i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i) {
         int prefixLength = strlen(prefixes[i]);
-        qDebug() << prefixes[i] << strlen(prefixes[i]);
         if (prefixLength < length && strncmp(prefixes[i], toCheck, prefixLength) == 0) {
             return true;
         }
@@ -35,7 +34,6 @@ bool doesStartWithPrefixes(const char* const prefixes[], char* toCheck) {
 
 void Settings::readDeviceType() {
     char* device_type = readFile("/sys/devices/soc0/machine");
-    qDebug() << device_type;
     _deviceType = DeviceType::UNKNOWN;
 
     if (device_type) {
@@ -62,9 +60,7 @@ void Settings::readDeviceType() {
 }
 
 DeviceType Settings::getDeviceType() {
-    qDebug() << "Getting device type...";
     if (_deviceType == DeviceType::UNDETERMINED) {
-        qDebug() << "Reading device type...";
         readDeviceType();
     }
     return _deviceType;
