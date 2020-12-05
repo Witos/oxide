@@ -58,4 +58,14 @@ const char* Settings::getTouchDevicePath() const {
         default:
             return "";
     }
+
+const char* Settings::getTouchEnvSetting() const {
+    switch(getDeviceType()) {
+        case DeviceType::RM1:
+            return "rotate=180";
+        case DeviceType::RM2:
+            return "rotate=180:invertx";
+        default:
+            return "";
+    }
 }
