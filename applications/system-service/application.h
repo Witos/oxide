@@ -66,6 +66,8 @@ public:
             }
         }
         env.insert("PATH", envPath);
+        env.insert("LD_PRELOAD", "/home/root/fb/librm2fb_client.so");
+        qDebug() << "Adding LD_PRELOAD...";
         m_process->setEnvironment(env.toStringList());
     }
     ~Application() {
@@ -172,7 +174,7 @@ public:
         update_rect.height = DISPLAYHEIGHT;
         update_data.update_marker = 0;
         update_data.update_region = update_rect;
-        update_data.waveform_mode = WAVEFORM_MODE_AUTO;
+        update_data.waveform_mode = WAVEFORM_MODE_GC16;
         update_data.update_mode = UPDATE_MODE_FULL;
         update_data.dither_mode = EPDC_FLAG_USE_DITHERING_MAX;
         update_data.temp = TEMP_USE_REMARKABLE_DRAW;

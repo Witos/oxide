@@ -94,6 +94,7 @@ struct mxcfb_rect {
 #define UPDATE_MODE_PARTIAL			0x0
 #define UPDATE_MODE_FULL			0x1
 
+#define WAVEFORM_MODE_GC16      0x2
 #define WAVEFORM_MODE_GLR16			4
 #define WAVEFORM_MODE_GLD16			5
 #define WAVEFORM_MODE_AUTO			257
