@@ -38,6 +38,10 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+void debug_fb_bitfield(const char* name, struct fb_bitfield bf) {
+  printf("%s: offset=%d, lenght=%d, msb_right=%d\n", name, bf.offset, bf.length, bf.msb_right);
+}
+
 int fb2png_exec(char *program, char *fbdevice, char *pngname)
 {
     //--------------------------------------------------------------------
@@ -73,6 +77,14 @@ int fb2png_exec(char *program, char *fbdevice, char *pngname)
                 strerror(errno));
         exit(EXIT_FAILURE);
     }
+
+    printf("vinfo ----------->\n");
+    printf("bits_per_pixel=%d, xres=%d, yres=%d\n", vinfo.bits_per_pixel, vinfo.xres, vinfo.yres);
+    debug_fb_bitfield("red", vinfo.red);
+    debug_fb_bitfield("green", vinfo.green);
+    debug_fb_bitfield("blue", vinfo.blue);
+    printf("finfo line_length=%d\n", finfo.line_length);
+    printf("vinfo <-----------\n");
 
     if ((vinfo.bits_per_pixel != 16) &&
         (vinfo.bits_per_pixel != 24) &&

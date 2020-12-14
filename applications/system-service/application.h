@@ -144,7 +144,11 @@ public:
         qDebug() << "Saving screen...";
         int frameBufferHandle = open("/dev/fb0", O_RDWR);
         char* frameBuffer = (char*)mmap(0, DISPLAYSIZE, PROT_READ | PROT_WRITE, MAP_SHARED, frameBufferHandle, 0);
+        int debugfd = open("/tmp/debugfb.dat", O_CREAT | O_WRONLY);
+        write(debugfd, frameBuffer, DISPLAYSIZE);
+        close(debugfd);
         qDebug() << "Compressing data...";
+
         auto compressedData = qCompress(QByteArray(frameBuffer, DISPLAYSIZE));
         close(frameBufferHandle);
         screenCapture = new QByteArray(compressedData);
