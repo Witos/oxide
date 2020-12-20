@@ -12,6 +12,7 @@ void SystemAPI::PrepareForSleep(bool suspending){
             resumeApp = nullptr;
         }
         drawSleepImage();
+        sleep(1);
         qDebug() << "Suspending...";
         buttonHandler->setEnabled(false);
         releaseSleepInhibitors();
