@@ -53,21 +53,15 @@ public:
         int width, height, channels;
         auto decoded = (uint32_t*)stbi_load(path.toStdString().c_str(), &width, &height, &channels, 4);
         int fd = open("/dev/fb0", O_RDWR);
-        auto ptr = (remarkable_color*)mmap(NULL, RDISPLAYSIZE, PROT_WRITE, MAP_SHARED, fd, 0);
+        auto ptr = (remarkable_color*)mmap(NULL, DISPLAYSIZE, PROT_WRITE, MAP_SHARED, fd, 0);
         auto src = decoded;
         for(int j = 0; j < height; j++){
-            if(j >= RDISPLAYHEIGHT){
-              break;
-            }
             for(int i = 0; i < width; i++){
-              if(i >= RDISPLAYWIDTH){
-                break;
-              }
               if(src[i] != 0){
                 ptr[i] = (remarkable_color)src[i];
               }
             }
-            ptr += RDISPLAYWIDTH;
+            ptr += DISPLAYWIDTH;
             src += width;
         }
         mxcfb_update_data update_data;
